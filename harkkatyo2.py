@@ -23,8 +23,11 @@ def create_submission_scores(clf, train_gen, pred_gen):
     clf.fit_generator(train_gen,
                       steps_per_epoch=1000,
                       epochs=2)
+    
+    # WARNING: batch_size*steps MUST be the amount of images in the testset.
+    # The batch_size is in the pred_gen constructor.
     preds = clf.predict_generator(pred_gen,
-                                  steps=1000)
+                                  steps=46)
     for i in range(len(preds)):
         retlist.append({"Id": i, "Category": class_names[np.argmax(preds[i])]})
     df = pd.DataFrame(retlist)
@@ -88,6 +91,7 @@ if __name__ == '__main__':
                                            batch_size=79)
     pred_gen = imgdatgen.flow_from_directory('test\\',
                                              target_size=(224,224),
-                                             batch_size=79,
-                                             class_mode=None)
+                                             batch_size=173,
+                                             class_mode=None,
+                                             shuffle=False)
     create_submission_scores(clfs[0], imggen, pred_gen)
