@@ -21,19 +21,22 @@ from harkkatyo1 import read_class_names
 def create_submission_scores(clf, train_gen, pred_gen):
     class_names = read_class_names("train\\train\\*\\*")
     retlist = []
-    fid = int(f.split(os.sep)[-1].split('.')[0])
-    X_mobile = model.predict(X[np.newaxis, ...])[0].reshape(1, -1)
-    y_pred = clf.predict(X_mobile)[0]
-    retlist.append({"Id": fid, "Category": class_names[y_pred]})
+    clf.fit_generator(train_gen,
+                      steps_per_epoch=1000,
+                      epochs=2)
+    preds = clf.predict_generator(pred_gen,
+                                  steps=1000)
+    for i in range(len(preds)):
+        retlist.append({"Id": i, "Category": class_names[np.argmax(preds[i])]})
     df = pd.DataFrame(retlist)
     df = df.set_index("Id").sort_index()
     df.to_csv('submission_as2.csv')
 
-#%% If main, gives error if run by itself, so this one is in it's own cell
-# Train & evaluate, main 'function'
+#%% "If main" gives error if run by itself, so this one is in it's own cell
 if __name__ == '__main__':
 
-    #%% Construct classifiers cell
+
+    #%% Construct classifiers
     convs = [MobileNet(input_shape=(224,224,3),include_top=False),
              MobileNetV2(input_shape=(224,224,3),include_top=False),
              InceptionV3(input_shape=(224,224,3),include_top=False)]
@@ -79,7 +82,8 @@ if __name__ == '__main__':
                 validation_steps=200)
         
         
-    #%% Fit and make the submission with the best classifier
+    #%% Fit with all the training data and make the submission with the best
+    #   classifier
     imggen = imgdatgen.flow_from_directory('train\\train',
                                            target_size=(224,224),
                                            batch_size=79)
