@@ -13,7 +13,6 @@ from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 
 import pandas as pd
-import os
 import numpy as np
 from harkkatyo1 import read_class_names
 
@@ -43,13 +42,13 @@ if __name__ == '__main__':
     
     clfs = []
     
-    for i in convs:
-        x = i.output
+    for conv in convs:
+        x = conv.output
         x = GlobalAveragePooling2D()(x)
         x = Dense(1024, activation='relu')(x)
         predictions = Dense(17, activation='softmax')(x)
-        model = Model(inputs=i.input, outputs=predictions)
-        for layer in i.layers:
+        model = Model(inputs=conv.input, outputs=predictions)
+        for layer in conv.layers:
             layer.trainable = False
         model.compile(optimizer='rmsprop',
                       loss='categorical_crossentropy',
@@ -73,8 +72,8 @@ if __name__ == '__main__':
     
     
     #%% Classifier training with generators
-    for i in clfs:
-        i.fit_generator(
+    for clf in clfs:
+        clf.fit_generator(
                 train_gen,
                 steps_per_epoch=800,
                 epochs=4,
